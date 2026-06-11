@@ -1,0 +1,41 @@
+# ===================================================================
+#  Konfiguracja Railway
+#  Railway automatycznie odczyta zmienne ponizej i pokaze je w panelu
+#  jako "gotowe do wypelnienia" przy deployu.
+# ===================================================================
+
+[build]
+builder = "NIXPACKS"
+
+[deploy]
+startCommand = "python bot.py"
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10
+
+# ===== ZMIENNE SRODOWISKOWE =====
+# Railway pokaze te zmienne przy deployu. Uzupelnij je w panelu:
+#   Settings -> Variables
+[deploy.variables]
+
+# WYMAGANE - token bota z https://discord.com/developers/applications
+DISCORD_TOKEN = "tu_wklej_token_bota"
+
+# WYMAGANE - polaczenie do PostgreSQL.
+# Dodaj w projekcie: New -> Database -> PostgreSQL, a nastepnie
+# w tej zmiennej kliknij i wybierz referencje: ${{Postgres.DATABASE_URL}}
+DATABASE_URL = "${{Postgres.DATABASE_URL}}"
+
+# OPCJONALNE - ID serwera testowego (komendy slash pojawiaja sie natychmiast).
+# Zostaw puste, aby zarejestrowac komendy globalnie.
+GUILD_ID = ""
+
+# ----- Ustawienia opcjonalne (maja wartosci domyslne, mozna pominac) -----
+DAILY_AMOUNT = "250"
+WORK_MIN = "50"
+WORK_MAX = "300"
+WORK_COOLDOWN = "3600"
+DAILY_COOLDOWN = "86400"
+START_BALANCE = "0"
+XP_PER_MESSAGE_MIN = "15"
+XP_PER_MESSAGE_MAX = "25"
+XP_COOLDOWN = "60"
