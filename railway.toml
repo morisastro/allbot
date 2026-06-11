@@ -29,6 +29,9 @@ DATABASE_URL = "${{Postgres.DATABASE_URL}}"
 # Zostaw puste, aby zarejestrowac komendy globalnie.
 GUILD_ID = ""
 
+# JEZYK BOTA - wpisz "pl" (polski) albo "en" (angielski).
+LANGUAGE = "pl"
+
 # ----- Ustawienia opcjonalne (maja wartosci domyslne, mozna pominac) -----
 DAILY_AMOUNT = "250"
 WORK_MIN = "50"

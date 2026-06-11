@@ -1,10 +1,6 @@
 """Powitania, pozegnania, autorole oraz komendy konfiguracyjne serwera.
 
-W tekstach powitan/pozegnan mozna uzywac:
-  {user}   - wzmianka uzytkownika
-  {name}   - nazwa uzytkownika
-  {server} - nazwa serwera
-  {count}  - liczba czlonkow
+Placeholdery: {user} {name} {server} {count}
 """
 import discord
 from discord import app_commands
@@ -12,6 +8,7 @@ from discord.ext import commands
 
 import database as db
 import utils
+from i18n import t
 
 
 def format_msg(template: str, member: discord.Member) -> str:
@@ -32,7 +29,6 @@ class Welcome(commands.Cog):
             return
         settings = await db.get_guild_settings(member.guild.id)
 
-        # autorole
         if settings["autorole_id"]:
             role = member.guild.get_role(settings["autorole_id"])
             if role:
@@ -41,24 +37,23 @@ class Welcome(commands.Cog):
                 except discord.Forbidden:
                     pass
 
-        # powitanie
         if settings["welcome_channel"]:
             ch = member.guild.get_channel(settings["welcome_channel"])
             if ch:
-                template = settings["welcome_message"] or "Witaj {user} na **{server}**! Jestes {count} czlonkiem."
-                e = utils.info(title=f"\U0001F44B Witaj na {member.guild.name}!", description=format_msg(template, member))
+                template = settings["welcome_message"] or t("wel.welcome_default")
+                e = utils.info(title=f"\U0001F44B {t('wel.welcome_title', server=member.guild.name)}",
+                               description=format_msg(template, member))
                 e.set_thumbnail(url=member.display_avatar.url)
                 try:
                     await ch.send(content=member.mention, embed=e)
                 except discord.Forbidden:
                     pass
 
-        # log
         if settings["log_channel"]:
             ch = member.guild.get_channel(settings["log_channel"])
             if ch:
-                e = utils.info(title="Czlonek dolaczyl", description=f"{member.mention} ({member})")
-                e.add_field(name="Konto utworzone", value=discord.utils.format_dt(member.created_at, "R"))
+                e = utils.info(title=t("wel.joined_title"), description=f"{member.mention} ({member})")
+                e.add_field(name=t("wel.account_created"), value=discord.utils.format_dt(member.created_at, "R"))
                 await ch.send(embed=e)
 
     @commands.Cog.listener()
@@ -70,8 +65,9 @@ class Welcome(commands.Cog):
         if settings["leave_channel"]:
             ch = member.guild.get_channel(settings["leave_channel"])
             if ch:
-                template = settings["leave_message"] or "{name} opuscil serwer. Zostalo nas {count}."
-                e = utils.embed(title="\U0001F44B Do zobaczenia!", description=format_msg(template, member), color=0x99AAB5)
+                template = settings["leave_message"] or t("wel.leave_default")
+                e = utils.embed(title=f"\U0001F44B {t('wel.leave_title')}",
+                                description=format_msg(template, member), color=0x99AAB5)
                 try:
                     await ch.send(embed=e)
                 except discord.Forbidden:
@@ -80,45 +76,44 @@ class Welcome(commands.Cog):
         if settings["log_channel"]:
             ch = member.guild.get_channel(settings["log_channel"])
             if ch:
-                await ch.send(embed=utils.info(title="Czlonek opuscil serwer", description=f"{member} ({member.id})"))
+                await ch.send(embed=utils.info(title=t("wel.left_title"), description=f"{member} ({member.id})"))
 
-    # ---------- Konfiguracja ----------
-    config_group = app_commands.Group(name="config", description="Konfiguracja serwera.",
+    config_group = app_commands.Group(name="config", description="Konfiguracja serwera. / Server configuration.",
                                       default_permissions=discord.Permissions(manage_guild=True))
 
-    @config_group.command(name="welcome", description="Ustawia kanal i tekst powitania.")
-    @app_commands.describe(kanal="Kanal powitan", tekst="Tekst (placeholdery: {user} {name} {server} {count})")
+    @config_group.command(name="welcome", description="Kanal i tekst powitania. / Welcome channel and text.")
+    @app_commands.describe(kanal="Kanal / Channel", tekst="Tekst ({user} {name} {server} {count}) / Text")
     async def set_welcome(self, interaction: discord.Interaction, kanal: discord.TextChannel, tekst: str = None):
         await db.set_guild_setting(interaction.guild.id, "welcome_channel", kanal.id)
         if tekst:
             await db.set_guild_setting(interaction.guild.id, "welcome_message", tekst)
-        await interaction.response.send_message(embed=utils.success(f"Powitania ustawione na {kanal.mention}."))
+        await interaction.response.send_message(embed=utils.success(t("cfg.welcome_set", channel=kanal.mention)))
 
-    @config_group.command(name="leave", description="Ustawia kanal i tekst pozegnania.")
-    @app_commands.describe(kanal="Kanal pozegnan", tekst="Tekst (placeholdery: {user} {name} {server} {count})")
+    @config_group.command(name="leave", description="Kanal i tekst pozegnania. / Leave channel and text.")
+    @app_commands.describe(kanal="Kanal / Channel", tekst="Tekst ({user} {name} {server} {count}) / Text")
     async def set_leave(self, interaction: discord.Interaction, kanal: discord.TextChannel, tekst: str = None):
         await db.set_guild_setting(interaction.guild.id, "leave_channel", kanal.id)
         if tekst:
             await db.set_guild_setting(interaction.guild.id, "leave_message", tekst)
-        await interaction.response.send_message(embed=utils.success(f"Pozegnania ustawione na {kanal.mention}."))
+        await interaction.response.send_message(embed=utils.success(t("cfg.leave_set", channel=kanal.mention)))
 
-    @config_group.command(name="autorole", description="Ustawia role nadawana nowym czlonkom.")
-    @app_commands.describe(rola="Rola dla nowych czlonkow")
+    @config_group.command(name="autorole", description="Rola dla nowych czlonkow. / Autorole for new members.")
+    @app_commands.describe(rola="Rola / Role")
     async def set_autorole(self, interaction: discord.Interaction, rola: discord.Role):
         await db.set_guild_setting(interaction.guild.id, "autorole_id", rola.id)
-        await interaction.response.send_message(embed=utils.success(f"Autorole ustawione na {rola.mention}."))
+        await interaction.response.send_message(embed=utils.success(t("cfg.autorole_set", role=rola.mention)))
 
-    @config_group.command(name="logs", description="Ustawia kanal logow moderacji/serwera.")
-    @app_commands.describe(kanal="Kanal logow")
+    @config_group.command(name="logs", description="Kanal logow. / Logs channel.")
+    @app_commands.describe(kanal="Kanal / Channel")
     async def set_logs(self, interaction: discord.Interaction, kanal: discord.TextChannel):
         await db.set_guild_setting(interaction.guild.id, "log_channel", kanal.id)
-        await interaction.response.send_message(embed=utils.success(f"Logi ustawione na {kanal.mention}."))
+        await interaction.response.send_message(embed=utils.success(t("cfg.logs_set", channel=kanal.mention)))
 
-    @config_group.command(name="levelchannel", description="Ustawia kanal ogloszen o awansach poziomu.")
-    @app_commands.describe(kanal="Kanal awansow (pusto = ten sam kanal)")
+    @config_group.command(name="levelchannel", description="Kanal ogloszen o awansach. / Level-up channel.")
+    @app_commands.describe(kanal="Kanal / Channel")
     async def set_levelchannel(self, interaction: discord.Interaction, kanal: discord.TextChannel):
         await db.set_guild_setting(interaction.guild.id, "level_up_channel", kanal.id)
-        await interaction.response.send_message(embed=utils.success(f"Ogloszenia o poziomach: {kanal.mention}."))
+        await interaction.response.send_message(embed=utils.success(t("cfg.levelchannel_set", channel=kanal.mention)))
 
 
 async def setup(bot):

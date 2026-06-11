@@ -21,6 +21,11 @@ TOKEN = os.getenv("DISCORD_TOKEN")
 DATABASE_URL = os.getenv("DATABASE_URL")
 GUILD_ID = os.getenv("GUILD_ID") or None  # opcjonalne - dla szybkiego syncu na jednym serwerze
 
+# ===== Jezyk bota: "pl" albo "en" =====
+LANGUAGE = (os.getenv("LANGUAGE") or "pl").strip().lower()
+if LANGUAGE not in ("pl", "en"):
+    LANGUAGE = "pl"
+
 # ===== Kolory embedow (spojny wyglad) =====
 COLOR_PRIMARY = 0x5865F2   # Discord blurple
 COLOR_SUCCESS = 0x57F287   # zielony

@@ -14,6 +14,7 @@ Gotowy do hostowania **24/7 na Railway**.
 - **Tickety** – panel z przyciskiem tworzacy prywatne kanaly zgloszen
 - **Narzedzia** – poll, giveaway, userinfo, serverinfo, avatar, afk, ping, embed
 - **Zabawa** – 8ball, dice, coinflip, meme, hug, slap, say
+- **Dwujezycznosc (PL / EN)** – ustaw zmienna `LANGUAGE` na `pl` albo `en`
 
 ---
 
@@ -44,6 +45,7 @@ Uzupelnij `.env`:
 DISCORD_TOKEN=twoj_token
 DATABASE_URL=postgresql://user:haslo@localhost:5432/discordbot
 GUILD_ID=id_twojego_serwera   # opcjonalnie - komendy pojawia sie od razu
+LANGUAGE=pl                   # jezyk bota: pl albo en
 ```
 
 Start:

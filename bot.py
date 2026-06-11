@@ -79,16 +79,17 @@ class DiscordBot(commands.Bot):
     async def on_app_command_error(self, interaction: discord.Interaction, error):
         import utils
         from discord import app_commands
+        from i18n import t
 
         if isinstance(error, app_commands.MissingPermissions):
-            msg = "Nie masz wymaganych uprawnien do tej komendy."
+            msg = t("err.missing_perms")
         elif isinstance(error, app_commands.BotMissingPermissions):
-            msg = "Bot nie ma wymaganych uprawnien. Sprawdz jego role."
+            msg = t("err.bot_missing_perms")
         elif isinstance(error, app_commands.CommandOnCooldown):
-            msg = f"Poczekaj jeszcze {error.retry_after:.0f}s."
+            msg = t("err.cooldown", sec=f"{error.retry_after:.0f}")
         else:
             log.exception("Blad komendy: %s", error)
-            msg = "Wystapil blad podczas wykonywania komendy."
+            msg = t("err.generic")
 
         embed = utils.error(msg)
         try:
